@@ -38,6 +38,40 @@ The flake also exposes the same package as its `default` package. It installs
 the project templates with the binary, so `showpass init` works without a
 separate template download.
 
+### Debian / Ubuntu
+
+Download the package matching your machine, then install it with APT:
+
+```bash
+# Intel / AMD 64-bit
+curl -fLO https://github.com/showpass/cli-releases/releases/download/linux-v2.1.0-r1/showpass_2.1.0-1_amd64.deb
+sudo apt install ./showpass_2.1.0-1_amd64.deb
+```
+
+```bash
+# ARM 64-bit
+curl -fLO https://github.com/showpass/cli-releases/releases/download/linux-v2.1.0-r1/showpass_2.1.0-1_arm64.deb
+sudo apt install ./showpass_2.1.0-1_arm64.deb
+```
+
+### Fedora / RHEL
+
+DNF can install the package directly from the immutable release URL:
+
+```bash
+# Intel / AMD 64-bit
+sudo dnf install https://github.com/showpass/cli-releases/releases/download/linux-v2.1.0-r1/showpass-2.1.0-1.x86_64.rpm
+```
+
+```bash
+# ARM 64-bit
+sudo dnf install https://github.com/showpass/cli-releases/releases/download/linux-v2.1.0-r1/showpass-2.1.0-1.aarch64.rpm
+```
+
+The native Linux packages install the CLI and the project templates together.
+Their checksums are attached to the
+[Linux package release](https://github.com/showpass/cli-releases/releases/tag/linux-v2.1.0-r1).
+
 The current supported platforms are macOS and Linux on ARM64 and x86-64.
 Windows is not supported by the current CLI release.
 

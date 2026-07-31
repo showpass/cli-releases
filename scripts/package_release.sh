@@ -195,10 +195,20 @@ templates required by \`showpass init\`.
 brew install showpass/tap/showpass
 \`\`\`
 
+### Debian / Ubuntu
+
+Download the \`.deb\` for your architecture from this release, then install it
+with \`sudo apt install ./showpass_<version>-1_<architecture>.deb\`.
+
+### Fedora / RHEL
+
+Download the \`.rpm\` for your architecture from this release, then install it
+with \`sudo dnf install ./showpass-<version>-1.<architecture>.rpm\`.
+
 The release was imported from the public Showpass distribution published on
 ${release_date} and corresponds to private source commit \`${source_commit}\`.
-See the attached \`SHA256SUMS\`, \`SOURCE_SHA256SUMS\`, and \`manifest.json\`
-files for integrity and provenance.
+See the attached \`SHA256SUMS\`, \`LINUX_PACKAGES_SHA256SUMS\`,
+\`SOURCE_SHA256SUMS\`, and \`manifest.json\` files for integrity and provenance.
 EOF
 
 echo "Release artifacts written to $OUTPUT_DIR"

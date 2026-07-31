@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
+
+name: showpass
+arch: "${SHOWPASS_ARCH}"
+platform: linux
+version: "${SHOWPASS_VERSION}"
+version_schema: semver
+release: "1"
+section: devel
+priority: optional
+maintainer: Showpass <support@showpass.com>
+description: |
+  Command-line interface for building Showpass websites.
+  Includes the project template required by `showpass init`.
+vendor: Showpass
+homepage: https://dev.showpass.com/cli/01-overview
+license: Proprietary
+disable_globbing: true
+
+contents:
+  - src: "${SHOWPASS_STAGE}/usr/bin/showpass"
+    dst: /usr/bin/showpass
+    expand: true
+    file_info:
+      mode: 0755
+      owner: root
+      group: root
+  - src: "${SHOWPASS_STAGE}/usr/lib/showpass/"
+    dst: /usr/lib/showpass
+    type: tree
+    expand: true
+  - src: "${SHOWPASS_STAGE}/usr/share/showpass/"
+    dst: /usr/share/showpass
+    type: tree
+    expand: true
+  - src: "${SHOWPASS_STAGE}/usr/share/doc/showpass/"
+    dst: /usr/share/doc/showpass
+    type: tree
+    expand: true
+
+rpm:
+  group: Development/Tools
+  summary: Command-line interface for building Showpass websites
+  packager: Showpass <support@showpass.com>
+  buildhost: packages.showpass.com
+  compression: gzip:9
+
+deb:
+  compression: gzip:9
+  fields:
+    Bugs: https://www.showpass.com/contact/

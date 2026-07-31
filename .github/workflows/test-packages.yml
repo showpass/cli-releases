@@ -1,0 +1,49 @@
+name: Test packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  linux-native:
+    name: Debian and RPM packages
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out package metadata
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Build verified release archives
+        run: ./scripts/package_release.sh release-specs/v2.1.0.json
+
+      - name: Build native packages
+        run: ./scripts/package_linux_packages.sh release-specs/v2.1.0.json dist dist
+
+      - name: Verify package checksums
+        working-directory: dist
+        run: sha256sum --check LINUX_PACKAGES_SHA256SUMS
+
+  nix:
+    name: Nix (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out package metadata
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Build and verify Showpass
+        run: |
+          nix build .#showpass --print-build-logs
+          test "$(./result/bin/showpass --version)" = "2.1.0"

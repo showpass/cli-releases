@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out release metadata
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Build verified immutable archives
         env:
@@ -29,6 +29,13 @@ jobs:
         run: |
           spec="release-specs/v${VERSION#v}.json"
           ./scripts/package_release.sh "$spec"
+
+      - name: Build native Linux packages
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          spec="release-specs/v${VERSION#v}.json"
+          ./scripts/package_linux_packages.sh "$spec" dist dist
 
       - name: Publish GitHub release
         env:
@@ -45,7 +52,10 @@ jobs:
           fi
           gh release create "$tag" \
             dist/showpass-*.tar.gz \
+            dist/showpass_*.deb \
+            dist/showpass-*.rpm \
             dist/SHA256SUMS \
+            dist/LINUX_PACKAGES_SHA256SUMS \
             dist/SOURCE_SHA256SUMS \
             dist/manifest.json \
             --draft \
@@ -63,7 +73,10 @@ jobs:
 
           for asset in \
             dist/showpass-*.tar.gz \
+            dist/showpass_*.deb \
+            dist/showpass-*.rpm \
             dist/SHA256SUMS \
+            dist/LINUX_PACKAGES_SHA256SUMS \
             dist/SOURCE_SHA256SUMS \
             dist/manifest.json; do
             name="$(basename "$asset")"

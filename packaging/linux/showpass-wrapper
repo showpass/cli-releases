@@ -1,0 +1,6 @@
+#!/bin/sh
+
+SHOWPASS_TEMPLATE_DIR=/usr/share/showpass/templates/app-template
+export SHOWPASS_TEMPLATE_DIR
+
+exec /usr/lib/showpass/showpass "$@"
