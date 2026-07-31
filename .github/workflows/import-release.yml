@@ -1,0 +1,72 @@
+name: Import verified CLI release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version without a leading v
+        required: true
+        type: string
+      darwin_arm64_sha256:
+        description: SHA-256 of the public darwin-arm64 binary
+        required: true
+        type: string
+      darwin_x64_sha256:
+        description: SHA-256 of the public darwin-x64 binary
+        required: true
+        type: string
+      linux_arm64_sha256:
+        description: SHA-256 of the public linux-arm64 binary
+        required: true
+        type: string
+      linux_x64_sha256:
+        description: SHA-256 of the public linux-x64 binary
+        required: true
+        type: string
+      template_sha256:
+        description: SHA-256 shared by each platform templates.tgz
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cli-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Package v${{ inputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+
+      - name: Build verified immutable archives
+        env:
+          VERSION: ${{ inputs.version }}
+          DARWIN_ARM64_SHA256: ${{ inputs.darwin_arm64_sha256 }}
+          DARWIN_X64_SHA256: ${{ inputs.darwin_x64_sha256 }}
+          LINUX_ARM64_SHA256: ${{ inputs.linux_arm64_sha256 }}
+          LINUX_X64_SHA256: ${{ inputs.linux_x64_sha256 }}
+          TEMPLATE_SHA256: ${{ inputs.template_sha256 }}
+        run: ./scripts/package_release.sh
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          tag="v${VERSION#v}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; refusing to overwrite immutable assets." >&2
+            exit 1
+          fi
+          gh release create "$tag" \
+            dist/showpass-*.tar.gz \
+            dist/SHA256SUMS \
+            dist/manifest.json \
+            --target "$GITHUB_SHA" \
+            --title "Showpass CLI $tag" \
+            --notes-file dist/RELEASE_NOTES.md
