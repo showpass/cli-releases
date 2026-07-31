@@ -25,6 +25,19 @@ brew upgrade showpass
 curl -fsSL "https://www.showpass.com/install.sh" | bash
 ```
 
+### Nix
+
+Install the release for the current macOS or Linux architecture:
+
+```bash
+nix profile install github:showpass/cli-releases#showpass
+showpass --version
+```
+
+The flake also exposes the same package as its `default` package. It installs
+the project templates with the binary, so `showpass init` works without a
+separate template download.
+
 The current supported platforms are macOS and Linux on ARM64 and x86-64.
 Windows is not supported by the current CLI release.
 
