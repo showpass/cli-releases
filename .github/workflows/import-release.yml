@@ -7,26 +7,6 @@ on:
         description: Semantic version without a leading v
         required: true
         type: string
-      darwin_arm64_sha256:
-        description: SHA-256 of the public darwin-arm64 binary
-        required: true
-        type: string
-      darwin_x64_sha256:
-        description: SHA-256 of the public darwin-x64 binary
-        required: true
-        type: string
-      linux_arm64_sha256:
-        description: SHA-256 of the public linux-arm64 binary
-        required: true
-        type: string
-      linux_x64_sha256:
-        description: SHA-256 of the public linux-x64 binary
-        required: true
-        type: string
-      template_sha256:
-        description: SHA-256 shared by each platform templates.tgz
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -46,12 +26,9 @@ jobs:
       - name: Build verified immutable archives
         env:
           VERSION: ${{ inputs.version }}
-          DARWIN_ARM64_SHA256: ${{ inputs.darwin_arm64_sha256 }}
-          DARWIN_X64_SHA256: ${{ inputs.darwin_x64_sha256 }}
-          LINUX_ARM64_SHA256: ${{ inputs.linux_arm64_sha256 }}
-          LINUX_X64_SHA256: ${{ inputs.linux_x64_sha256 }}
-          TEMPLATE_SHA256: ${{ inputs.template_sha256 }}
-        run: ./scripts/package_release.sh
+        run: |
+          spec="release-specs/v${VERSION#v}.json"
+          ./scripts/package_release.sh "$spec"
 
       - name: Publish GitHub release
         env:
@@ -64,9 +41,39 @@ jobs:
             exit 1
           fi
           gh release create "$tag" \
-            dist/showpass-*.tar.gz \
-            dist/SHA256SUMS \
-            dist/manifest.json \
+            --draft \
             --target "$GITHUB_SHA" \
             --title "Showpass CLI $tag" \
             --notes-file dist/RELEASE_NOTES.md
+
+          gh release upload "$tag" \
+            dist/showpass-*.tar.gz \
+            dist/SHA256SUMS \
+            dist/SOURCE_SHA256SUMS \
+            dist/manifest.json
+
+          for asset in \
+            dist/showpass-*.tar.gz \
+            dist/SHA256SUMS \
+            dist/SOURCE_SHA256SUMS \
+            dist/manifest.json; do
+            name="$(basename "$asset")"
+            local_size="$(wc -c < "$asset" | tr -d ' ')"
+            local_sha256="$(sha256sum "$asset" | awk '{print $1}')"
+            remote_asset="$(gh api \
+              "/repos/${GITHUB_REPOSITORY}/releases/tags/$tag" \
+              --jq ".assets[] | select(.name == \"$name\") | {size, digest}")"
+            remote_size="$(jq -er '.size' <<< "$remote_asset")"
+            remote_digest="$(jq -r '.digest // empty' <<< "$remote_asset")"
+
+            if [[ "$remote_size" != "$local_size" ]]; then
+              echo "Uploaded size mismatch for $name" >&2
+              exit 1
+            fi
+            if [[ -n "$remote_digest" && "$remote_digest" != "sha256:$local_sha256" ]]; then
+              echo "Uploaded digest mismatch for $name" >&2
+              exit 1
+            fi
+          done
+
+          gh release edit "$tag" --draft=false

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "version": "2.1.0",
+  "source_commit": "733658123f805588c16f0da2c347427e3c35baa3",
+  "release_date": "2026-07-12T21:36:29.891Z",
+  "source_date_epoch": 1783892189,
+  "template": {
+    "url": "https://showpass-live.s3.us-west-2.amazonaws.com/releases/cli/darwin-arm64/templates.tgz",
+    "size": 62131,
+    "sha256": "b0eb6bf71ee418205f3287ae9263c8d71d5944e94bb3330f99d050dd7be58606"
+  },
+  "platforms": [
+    {
+      "name": "darwin-arm64",
+      "binary_url": "https://showpass-live.s3.us-west-2.amazonaws.com/releases/cli/darwin-arm64/showpass",
+      "binary_size": 61216480,
+      "binary_sha256": "0ca1643ec4721d34159a9a0d2ed5466f23506d0f09313db3ac2c2e58bd36c93a"
+    },
+    {
+      "name": "darwin-x64",
+      "binary_url": "https://showpass-live.s3.us-west-2.amazonaws.com/releases/cli/darwin-x64/showpass",
+      "binary_size": 66111728,
+      "binary_sha256": "17b6bbc6b8707d8ec6744c3f45e5290d9df9ba7759094d72d97c6f317d17bc97"
+    },
+    {
+      "name": "linux-arm64",
+      "binary_url": "https://showpass-live.s3.us-west-2.amazonaws.com/releases/cli/linux-arm64/showpass",
+      "binary_size": 100851852,
+      "binary_sha256": "c42a013bffae1118bc93365b4e4c8ce0ed0a85e2445467d25b3c3ec04d094cf3"
+    },
+    {
+      "name": "linux-x64",
+      "binary_url": "https://showpass-live.s3.us-west-2.amazonaws.com/releases/cli/linux-x64/showpass",
+      "binary_size": 103287092,
+      "binary_sha256": "c3c4e8c7ebe7c2c7c796958d0d9afc1146d5016d88b76c9cc3c0f2c2e600edd9"
+    }
+  ]
+}
