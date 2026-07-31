@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out release metadata
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build verified immutable archives
         env:
@@ -36,21 +36,30 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           tag="v${VERSION#v}"
-          if gh release view "$tag" >/dev/null 2>&1; then
+          existing_release_id="$(gh api \
+            "/repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq ".[] | select(.tag_name == \"$tag\") | .id" | head -n1)"
+          if [[ -n "$existing_release_id" ]]; then
             echo "Release $tag already exists; refusing to overwrite immutable assets." >&2
             exit 1
           fi
           gh release create "$tag" \
+            dist/showpass-*.tar.gz \
+            dist/SHA256SUMS \
+            dist/SOURCE_SHA256SUMS \
+            dist/manifest.json \
             --draft \
             --target "$GITHUB_SHA" \
             --title "Showpass CLI $tag" \
             --notes-file dist/RELEASE_NOTES.md
 
-          gh release upload "$tag" \
-            dist/showpass-*.tar.gz \
-            dist/SHA256SUMS \
-            dist/SOURCE_SHA256SUMS \
-            dist/manifest.json
+          release_id="$(gh api \
+            "/repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq ".[] | select(.tag_name == \"$tag\" and .draft) | .id" | head -n1)"
+          if [[ -z "$release_id" ]]; then
+            echo "Could not find the newly created draft release $tag" >&2
+            exit 1
+          fi
 
           for asset in \
             dist/showpass-*.tar.gz \
@@ -61,7 +70,7 @@ jobs:
             local_size="$(wc -c < "$asset" | tr -d ' ')"
             local_sha256="$(sha256sum "$asset" | awk '{print $1}')"
             remote_asset="$(gh api \
-              "/repos/${GITHUB_REPOSITORY}/releases/tags/$tag" \
+              "/repos/${GITHUB_REPOSITORY}/releases/$release_id" \
               --jq ".assets[] | select(.name == \"$name\") | {size, digest}")"
             remote_size="$(jq -er '.size' <<< "$remote_asset")"
             remote_digest="$(jq -r '.digest // empty' <<< "$remote_asset")"
@@ -76,4 +85,7 @@ jobs:
             fi
           done
 
-          gh release edit "$tag" --draft=false
+          gh api \
+            --method PATCH \
+            "/repos/${GITHUB_REPOSITORY}/releases/$release_id" \
+            -f draft=false >/dev/null
