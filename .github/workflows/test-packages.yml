@@ -27,6 +27,35 @@ jobs:
         working-directory: dist
         run: sha256sum --check LINUX_PACKAGES_SHA256SUMS
 
+      - name: Install and run Debian package
+        run: |
+          sudo apt-get install --yes ./dist/showpass_2.1.0-1_amd64.deb
+          test "$(showpass --version)" = "2.1.0"
+          test -f /usr/share/showpass/templates/app-template/package.json
+
+  rpm-install:
+    name: Install RPM with DNF
+    runs-on: ubuntu-24.04
+    container: fedora:42
+    steps:
+      - name: Install build prerequisites
+        run: dnf install --assumeyes curl findutils gzip jq tar
+
+      - name: Check out package metadata
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Build verified release archives
+        run: ./scripts/package_release.sh release-specs/v2.1.0.json
+
+      - name: Build native packages
+        run: ./scripts/package_linux_packages.sh release-specs/v2.1.0.json dist dist
+
+      - name: Install and run RPM package
+        run: |
+          dnf install --assumeyes ./dist/showpass-2.1.0-1.x86_64.rpm
+          test "$(showpass --version)" = "2.1.0"
+          test -f /usr/share/showpass/templates/app-template/package.json
+
   nix:
     name: Nix (${{ matrix.os }})
     strategy:
